@@ -6,11 +6,12 @@ const attempt = 3;
 const config = {
     range: range,
     attempt: attempt,
+    secretRange: 6
 
 }
 
 class CoreGame {
-    constructor(secret = this.randomSecret(), options = config) {
+    constructor(secret = this.randomSecret(), gameConfig = config) {
         this.secret = secret.toLowerCase();
         this.gameOptions = {
             ox: 0,
@@ -18,15 +19,15 @@ class CoreGame {
             trying: 0,
             status: false,
         };
-        this.config = options;
+        this.gameConfig = gameConfig;
         this.event = new events.EventEmitter();
       
     }
 
     randomSecret() {
-        const workArr = range.slice(0);
+        const workArr = this.gameConfig.range.slice(0);
         let removed = [];
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < this.gameConfig.secretRange; i++) {
             const randomItem = Math.floor(Math.random() * workArr.length);
             removed += workArr.splice(randomItem, 1).slice(0);
         }
@@ -34,7 +35,7 @@ class CoreGame {
     }
 
     checkSecret(value) {
-        CoreGame.validateSecret(value);
+        this.validateSecret(value);
         
         if(this.gameOptions.status) return
 
@@ -51,7 +52,7 @@ class CoreGame {
             }
         });
         console.log('Бичків:', ox, 'Корів:', cow, 'Залишилось спроб:', attempt - this.gameOptions.trying - 1);
-        if (ox === 6) {
+        if (ox === this.gameConfig.secretRange) {
             this.gameOptions.status = true;
             this.event.emit('win');
             return true
@@ -92,13 +93,13 @@ class CoreGame {
         console.log('object reset success');
     }
 
-    static validateSecret(secret) {
-        if (secret.length != 6) throw new Error('must be 6 symbol');
+    validateSecret(secret) {
+        if (secret.length != this.gameConfig.secretRange) throw new Error(`must be ${this.gameConfig.secretRange} symbol`);
 
         const arr = secret.split('');
 
         arr.forEach(item => {
-            const res = range.includes(item);
+            const res = this.gameConfig.range.includes(item);
             if (!res) throw new Error('error range');
         });
 
@@ -110,7 +111,14 @@ class CoreGame {
 
 }
 
-const instans = new CoreGame('1234ab');
+const testConfig = {
+    range: range,
+    attempt: attempt,
+    secretRange: 3
+}
+
+
+const instans = new CoreGame('123', testConfig);
 
 instans.event.on('win', ()=> {
     console.log('Huuh, you win!!!!');
@@ -119,20 +127,50 @@ instans.event.on('lose', () => {
     console.log('pfffff, you lose(((((((((');
 });
 
-CoreGame.validateSecret(instans.secret)
+instans.validateSecret(instans.secret)
 
-instans.checkSecret('1267ba');
-instans.checkSecret('1263ab');
-instans.checkSecret('1273ab');
+instans.checkSecret('127');
+instans.checkSecret('129');
+instans.checkSecret('123');
+
 // instans.checkSecret('1234ab');
 
-instans.checkSecret('1239ab');
+// instans.checkSecret('1239ab');
 // instans.checkSecret('1234ab');
 
-instans.reset('987654');
+// instans.reset('987654');
 
-instans.checkSecret('98a7bc');
+// instans.checkSecret('98a7bc');
 // instans.checkSecret('9876c');
-instans.checkSecret('987654');
+// instans.checkSecret('987654');
+
+
+
+
+
+// const instans = new CoreGame('1234ab');
+
+// instans.event.on('win', ()=> {
+//     console.log('Huuh, you win!!!!');
+// });
+// instans.event.on('lose', () => {
+//     console.log('pfffff, you lose(((((((((');
+// });
+
+// CoreGame.validateSecret(instans.secret)
+
+// instans.checkSecret('1267ba');
+// instans.checkSecret('1263ab');
+// instans.checkSecret('1273ab');
+// // instans.checkSecret('1234ab');
+
+// instans.checkSecret('1239ab');
+// // instans.checkSecret('1234ab');
+
+// instans.reset('987654');
+
+// instans.checkSecret('98a7bc');
+// // instans.checkSecret('9876c');
+// instans.checkSecret('987654');
 
 module.exports = CoreGame;
